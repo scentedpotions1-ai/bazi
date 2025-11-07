@@ -152,7 +152,8 @@ export function BaziResults({ result, onReset }: BaziResultsProps) {
           color: 'white',
           border: 'none',
           borderRadius: '4px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          marginTop: '2rem'
         }}
       >
         Calculate Another Chart

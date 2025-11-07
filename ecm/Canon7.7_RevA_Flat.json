@@ -1,0 +1,16 @@
+{
+  "case_id": "{{case_id}}",
+  "constitution": "{{constitution_type}}",
+  "polarity": "{{constitution_polarity}}",
+  "confidence": "{{confidence_total_structural}}",
+  "wood_count": "{{total_wood}}",
+  "fire_count": "{{total_fire}}",
+  "earth_count": "{{total_earth}}",
+  "metal_count": "{{total_metal}}",
+  "water_count": "{{total_water}}",
+  "yang_total": "{{yang_total}}",
+  "yin_total": "{{yin_total}}",
+  "organ_flow": "Stomach>LargeIntestine>SmallIntestine>Gallbladder>Bladder",
+  "sibling": "{{sibling_type}}",
+  "opposite": "{{opposite_type}}"
+}

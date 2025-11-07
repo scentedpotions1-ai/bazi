@@ -1,0 +1,149 @@
+{
+  "version": "7.7A",
+  "case": {
+    "id": "{{case_id}}",
+    "labels": [
+      "{{tag1}}",
+      "{{tag2}}"
+    ],
+    "dayMaster": "{{day_master}}",
+    "fourPillars": {
+      "year": "{{stem_branch_year}}",
+      "month": "{{stem_branch_month}}",
+      "day": "{{stem_branch_day}}",
+      "hour": "{{stem_branch_hour}}"
+    },
+    "notes": "{{optional_case_notes}}"
+  },
+  "elements": {
+    "wood": {
+      "count": "{{wood_count}}",
+      "strength": "{{wood_strength}}",
+      "polarity": {
+        "yang": "{{wood_yang}}",
+        "yin": "{{wood_yin}}"
+      }
+    },
+    "fire": {
+      "count": "{{fire_count}}",
+      "strength": "{{fire_strength}}",
+      "polarity": {
+        "yang": "{{fire_yang}}",
+        "yin": "{{fire_yin}}"
+      }
+    },
+    "earth": {
+      "count": "{{earth_count}}",
+      "strength": "{{earth_strength}}",
+      "polarity": {
+        "yang": "{{earth_yang}}",
+        "yin": "{{earth_yin}}"
+      }
+    },
+    "metal": {
+      "count": "{{metal_count}}",
+      "strength": "{{metal_strength}}",
+      "polarity": {
+        "yang": "{{metal_yang}}",
+        "yin": "{{metal_yin}}"
+      }
+    },
+    "water": {
+      "count": "{{water_count}}",
+      "strength": "{{water_strength}}",
+      "polarity": {
+        "yang": "{{water_yang}}",
+        "yin": "{{water_yin}}"
+      }
+    }
+  },
+  "polaritySummary": {
+    "yang": "{{yang_total}}",
+    "yin": "{{yin_total}}",
+    "ratio": "{{yang_ratio}}/{{yin_ratio}}"
+  },
+  "constitution": {
+    "type": "{{constitution_type}}",
+    "polarity": "{{constitution_polarity}}",
+    "flow": [
+      "Stomach",
+      "Large Intestine",
+      "Small Intestine",
+      "Gallbladder",
+      "Bladder"
+    ],
+    "sibling": "{{sibling_type}}",
+    "opposite": "{{opposite_type}}"
+  },
+  "scoring": {
+    "fiveElement": 0.2,
+    "dominantConsistency": 0.15,
+    "polarityGate": 0.15,
+    "organFlow": 0.25,
+    "pairCoherence": 0.15,
+    "distributionBalance": 0.07,
+    "totalStructuralConfidence": "{{confidence_total_structural}}"
+  },
+  "audit": {
+    "polarityValidation": "{{bool}}",
+    "elementalCoherence": "{{bool}}",
+    "canonicalFlowIntegrity": "{{bool}}"
+  },
+  "tables": {
+    "elementMatrix": [
+      [
+        "Pillar",
+        "Wood",
+        "Fire",
+        "Earth",
+        "Metal",
+        "Water",
+        "Total"
+      ],
+      [
+        "Year {{year_pillar}}",
+        "{{year_wood}}",
+        "{{year_fire}}",
+        "{{year_earth}}",
+        "{{year_metal}}",
+        "{{year_water}}",
+        "{{year_total}}"
+      ],
+      [
+        "Month {{month_pillar}}",
+        "{{month_wood}}",
+        "{{month_fire}}",
+        "{{month_earth}}",
+        "{{month_metal}}",
+        "{{month_water}}",
+        "{{month_total}}"
+      ],
+      [
+        "Day {{day_pillar}}",
+        "{{day_wood}}",
+        "{{day_fire}}",
+        "{{day_earth}}",
+        "{{day_metal}}",
+        "{{day_water}}",
+        "{{day_total}}"
+      ],
+      [
+        "Hour {{hour_pillar}}",
+        "{{hour_wood}}",
+        "{{hour_fire}}",
+        "{{hour_earth}}",
+        "{{hour_metal}}",
+        "{{hour_water}}",
+        "{{hour_total}}"
+      ]
+    ],
+    "verticalTotals": {
+      "wood": "{{total_wood}}",
+      "fire": "{{total_fire}}",
+      "earth": "{{total_earth}}",
+      "metal": "{{total_metal}}",
+      "water": "{{total_water}}",
+      "stemsTotal": "{{stems_total}}"
+    }
+  }
+}

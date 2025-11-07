@@ -1,11 +1,20 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/bazi/',
-  build: {
-    target: 'es2015'
+  define: {
+    '__dirname': JSON.stringify(''),
+    'process.env': {}
+  },
+  resolve: {
+    alias: {
+      path: 'path-browserify',
+      fs: false,
+    }
+  },
+  optimizeDeps: {
+    exclude: ['geo-tz']
   }
-});
+})

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { BaziForm } from './BaziForm';
-import { BaziResults } from './BaziResults';
-import { calculateBazi, BaziResult } from './bazi';
+import { BaziForm } from './components/BaziForm';
+import { BaziResults } from './components/BaziResults';
+import { calculateBazi, BaziResult } from './core/bazi';
 
 function App() {
   const [result, setResult] = useState<BaziResult | null>(null);
@@ -18,7 +18,6 @@ function App() {
     setError(null);
 
     try {
-      // app seem to crach when i provide this function even though i not running it 
       const baziResult = await calculateBazi(
         data.name,
         data.dateOfBirth,

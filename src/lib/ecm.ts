@@ -1,12 +1,100 @@
 /* =========================================================
-   CANON 7.7 · REVISION A — ECM ENGINE (PURE JS, NO OVERRIDES)
+   CANON 7.7 · REVISION A — ECM ENGINE (PURE TS)
    - Gate: Yang → hollow, Yin → dense
    - Respiratory: from constitution only (dense=inhalation, hollow=exhalation)
    - Parent–child support: only for tie-breaks (Fire excluded as dominant)
    ========================================================= */
 
+export interface CanonPillar {
+  stem: string;
+  branch: string;
+}
+
+export interface CanonPillars {
+  year: CanonPillar;
+  month: CanonPillar;
+  day: CanonPillar;
+  hour: CanonPillar;
+}
+
+export interface CanonResult {
+  json: {
+    version: string;
+    case: {
+      id: string;
+      labels: string[];
+      dayMaster: string;
+      fourPillars: {
+        year: string;
+        month: string;
+        day: string;
+        hour: string;
+      };
+      notes: string;
+    };
+    elements: {
+      wood: { count: number; strength: string; polarity: { yang: number; yin: number } };
+      fire: { count: number; strength: string; polarity: { yang: number; yin: number } };
+      earth: { count: number; strength: string; polarity: { yang: number; yin: number } };
+      metal: { count: number; strength: string; polarity: { yang: number; yin: number } };
+      water: { count: number; strength: string; polarity: { yang: number; yin: number } };
+    };
+    polaritySummary: {
+      yang: number;
+      yin: number;
+      ratio: string;
+    };
+    constitution: {
+      type: string;
+      polarity: string;
+      flow: string[];
+      sibling: string;
+      opposite: string;
+    };
+    respiratoryType: string;
+    scoring: {
+      fiveElement: number;
+      dominantConsistency: number;
+      polarityGate: number;
+      organFlow: number;
+      pairCoherence: number;
+      distributionBalance: number;
+      totalStructuralConfidence: number;
+    };
+    audit: {
+      polarityValidation: boolean;
+      elementalCoherence: boolean;
+      canonicalFlowIntegrity: boolean;
+    };
+    tables: {
+      elementMatrix: any[];
+      verticalTotals: {
+        wood: number;
+        fire: number;
+        earth: number;
+        metal: number;
+        water: number;
+        stemsTotal: number;
+      };
+    };
+    stationStrengths: Array<{
+      station: number;
+      organ: string;
+      element: string;
+      count: number;
+      strength: string;
+      sources: Array<{
+        slot: string;
+        stem: string;
+        visibility: string;
+      }>;
+    }>;
+  };
+  markdown: string;
+}
+
 /* ---------- Canon tables ---------- */
-const ELEMENT_OF_STEM = {
+const ELEMENT_OF_STEM: Record<string, { element: string; polarity: string }> = {
   '甲': { element: 'Wood',  polarity: 'Yang' },
   '乙': { element: 'Wood',  polarity: 'Yin'  },
   '丙': { element: 'Fire',  polarity: 'Yang' },
@@ -18,7 +106,8 @@ const ELEMENT_OF_STEM = {
   '壬': { element: 'Water', polarity: 'Yang' },
   '癸': { element: 'Water', polarity: 'Yin'  }
 };
-const HIDDEN_STEMS = {
+
+const HIDDEN_STEMS: Record<string, string[]> = {
   '子': ['癸'], '丑': ['己','癸','辛'], '寅': ['甲','丙','戊'], '卯': ['乙'],
   '辰': ['戊','乙','癸'], '巳': ['丙','庚','戊'], '午': ['丁','己'],
   '未': ['己','乙','丁'], '申': ['庚','壬','戊'], '酉': ['辛'],
@@ -26,7 +115,7 @@ const HIDDEN_STEMS = {
 };
 
 /* Fixed flows (5→1) */
-const FLOW = {
+const FLOW: Record<string, string[]> = {
   Renotonia:     ['Kidney','Lungs','Liver','Heart','Pancreas'],
   Vesicotonia:   ['Bladder','Gallbladder','Small Intestine','Large Intestine','Stomach'],
   Pancreotonia:  ['Pancreas','Heart','Liver','Lungs','Kidney'],
@@ -36,33 +125,38 @@ const FLOW = {
   Hepatonia:     ['Liver','Kidney','Heart','Pancreas','Lungs'],
   Cholecystonia: ['Gallbladder','Small Intestine','Stomach','Bladder','Large Intestine']
 };
-const STATION_ELEMENT = {
+
+const STATION_ELEMENT: Record<string, string> = {
   'Stomach':'Earth','Pancreas':'Earth',
   'Large Intestine':'Metal','Lungs':'Metal',
   'Small Intestine':'Fire','Heart':'Fire',
   'Gallbladder':'Wood','Liver':'Wood',
   'Bladder':'Water','Kidney':'Water'
 };
+
 /* Sibling / Opposite */
-const SIBLING = {
+const SIBLING: Record<string, string> = {
   Renotonia:'Vesicotonia', Vesicotonia:'Renotonia',
   Pancreotonia:'Gastrotonia', Gastrotonia:'Pancreotonia',
   Hepatonia:'Cholecystonia', Cholecystonia:'Hepatonia',
   Pulmonotonia:'Colonotonia', Colonotonia:'Pulmonotonia'
 };
-const OPPOSITE = {
+
+const OPPOSITE: Record<string, string> = {
   Renotonia:'Pancreotonia', Pancreotonia:'Renotonia',
   Gastrotonia:'Vesicotonia', Vesicotonia:'Gastrotonia',
   Hepatonia:'Cholecystonia', Cholecystonia:'Hepatonia',
   Pulmonotonia:'Colonotonia', Colonotonia:'Pulmonotonia'
 };
+
 /* Respiratory (from constitution only) */
-const RESPIRATORY = {
+const RESPIRATORY: Record<string, string> = {
   Renotonia:'Inhalation', Pancreotonia:'Inhalation',
   Hepatonia:'Inhalation', Pulmonotonia:'Inhalation',
   Vesicotonia:'Exhalation', Gastrotonia:'Exhalation',
   Cholecystonia:'Exhalation', Colonotonia:'Exhalation'
 };
+
 /* Structural weights (Rev-A) */
 const WEIGHTS = {
   fiveElementCompleteness: 0.20,
@@ -73,148 +167,195 @@ const WEIGHTS = {
   pairCoherence:           0.15,
   distributionBalance:     0.07
 };
+
 /* Candidates per gate */
 const HOLLOW_TYPES = ['Gastrotonia','Cholecystonia','Vesicotonia','Colonotonia'];
 const DENSE_TYPES  = ['Pancreotonia','Hepatonia','Renotonia','Pulmonotonia'];
 
 /* ---------- Helpers ---------- */
-const round2 = x => Math.round(x*100)/100;
-const percent = (n,d) => d ? Math.round((n/d)*100) : 0;
-const arraysEqual = (a,b) => a.length===b.length && a.every((v,i)=>v===b[i]);
-const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const round2 = (x: number) => Math.round(x*100)/100;
+const percent = (n: number, d: number) => d ? Math.round((n/d)*100) : 0;
+const arraysEqual = (a: any[], b: any[]) => a.length===b.length && a.every((v,i)=>v===b[i]);
+const cap = (s: string) => s.charAt(0).toUpperCase()+s.slice(1);
 
 /* Gate: Yang → hollow, Yin → dense */
-function resolvePolarityGate(dmPolarity) {
+function resolvePolarityGate(dmPolarity: string): string {
   return dmPolarity === 'Yang' ? 'hollow' : 'dense';
 }
-function elementOfStem(stem){ const info = ELEMENT_OF_STEM[stem]; if(!info) throw new Error(`Unknown stem: ${stem}`); return info; }
 
-function buildElementMatrix(pillars){
-  const totals = { Wood:0, Fire:0, Earth:0, Metal:0, Water:0 };
-  const pol = { Yang:0, Yin:0 };
-  const matrix = [];
-  for(const slot of ['year','month','day','hour']){
-    const {stem,branch} = pillars[slot]; if(!stem||!branch) throw new Error(`Missing ${slot} pillar`);
-    const row = { Wood:0, Fire:0, Earth:0, Metal:0, Water:0 };
-    const hs = elementOfStem(stem); row[hs.element]++; pol[hs.polarity]++;
+function elementOfStem(stem: string) { 
+  const info = ELEMENT_OF_STEM[stem]; 
+  if(!info) throw new Error(`Unknown stem: ${stem}`); 
+  return info; 
+}
+
+function buildElementMatrix(pillars: CanonPillars) {
+  const totals: Record<string, number> = { Wood:0, Fire:0, Earth:0, Metal:0, Water:0 };
+  const pol: Record<string, number> = { Yang:0, Yin:0 };
+  const matrix: any[] = [];
+  
+  for(const slot of ['year','month','day','hour'] as const) {
+    const {stem,branch} = pillars[slot]; 
+    if(!stem||!branch) throw new Error(`Missing ${slot} pillar`);
+    
+    const row: Record<string, number> = { Wood:0, Fire:0, Earth:0, Metal:0, Water:0 };
+    const hs = elementOfStem(stem); 
+    row[hs.element]++; 
+    pol[hs.polarity]++;
+    
     const hidden = HIDDEN_STEMS[branch]||[];
-    for(const h of hidden){ const hi = elementOfStem(h); row[hi.element]++; pol[hi.polarity]++; }
-    matrix.push([`${cap(slot)} ${stem}${branch}`, row.Wood,row.Fire,row.Earth,row.Metal,row.Water, row.Wood+row.Fire+row.Earth+row.Metal+row.Water]);
+    for(const h of hidden) { 
+      const hi = elementOfStem(h); 
+      row[hi.element]++; 
+      pol[hi.polarity]++; 
+    }
+    
+    matrix.push([`${cap(slot)} ${stem}${branch}`, row.Wood, row.Fire, row.Earth, row.Metal, row.Water, row.Wood+row.Fire+row.Earth+row.Metal+row.Water]);
     for(const k of ['Wood','Fire','Earth','Metal','Water']) totals[k]+=row[k];
   }
+  
   const stemsTotal = totals.Wood+totals.Fire+totals.Earth+totals.Metal+totals.Water;
   return { matrix, verticalTotals:totals, stemsTotal, polarityTotals:pol };
 }
-function strengthFromCount(c){ if(c>=3) return 'Strong'; if(c===2) return 'Moderate'; if(c===1) return 'Weak'; return 'Weak/Absent'; }
-function classifyStrength(t){ const s={}; for(const k of ['Wood','Fire','Earth','Metal','Water']){ const c=t[k]; s[k]=(c>=4?'Very Strong':c===3?'Strong':c===2?'Moderate':c===1?'Weak':'Weak/Absent'); } return s; }
-function splitPolarityByElement(E,pillars){
-  let yang=0,yin=0;
-  for(const slot of ['year','month','day','hour']){
+
+function strengthFromCount(c: number): string { 
+  if(c>=3) return 'Strong'; 
+  if(c===2) return 'Moderate'; 
+  if(c===1) return 'Weak'; 
+  return 'Weak/Absent'; 
+}
+
+function classifyStrength(t: Record<string, number>) { 
+  const s: Record<string, string> = {}; 
+  for(const k of ['Wood','Fire','Earth','Metal','Water']) { 
+    const c=t[k]; 
+    s[k]=(c>=4?'Very Strong':c===3?'Strong':c===2?'Moderate':c===1?'Weak':'Weak/Absent'); 
+  } 
+  return s; 
+}
+
+function splitPolarityByElement(E: string, pillars: CanonPillars) {
+  let yang=0, yin=0;
+  for(const slot of ['year','month','day','hour'] as const) {
     const {stem,branch} = pillars[slot];
-    const s = ELEMENT_OF_STEM[stem]; if(s.element===E) (s.polarity==='Yang'?yang++:yin++);
-    for(const h of (HIDDEN_STEMS[branch]||[])){ const info = ELEMENT_OF_STEM[h]; if(info.element===E) (info.polarity==='Yang'?yang++:yin++); }
+    const s = ELEMENT_OF_STEM[stem]; 
+    if(s.element===E) (s.polarity==='Yang'?yang++:yin++);
+    for(const h of (HIDDEN_STEMS[branch]||[])) { 
+      const info = ELEMENT_OF_STEM[h]; 
+      if(info.element===E) (info.polarity==='Yang'?yang++:yin++); 
+    }
   }
   return {yang,yin};
 }
-function collectSources(element,pillars){
-  const out=[];
-  for(const slot of ['year','month','day','hour']){
+
+function collectSources(element: string, pillars: CanonPillars) {
+  const out: any[] = [];
+  for(const slot of ['year','month','day','hour'] as const) {
     const {stem,branch}=pillars[slot];
     const s = ELEMENT_OF_STEM[stem];
     if(s.element===element) out.push({slot,stem,visibility:'visible'});
-    for(const h of (HIDDEN_STEMS[branch]||[])){
+    for(const h of (HIDDEN_STEMS[branch]||[])) {
       const info=ELEMENT_OF_STEM[h];
       if(info.element===element) out.push({slot,stem:h,visibility:'hidden'});
     }
   }
   return out;
 }
-function flowEvidenceFor(constitution, totals, pillars){
+
+function flowEvidenceFor(constitution: string, totals: Record<string, number>, pillars: CanonPillars) {
   const stations = FLOW[constitution];
-  const reports=[];
+  const reports: any[] = [];
   let anyWeak=false;
-  for(let i=0;i<stations.length;i++){
+  
+  for(let i=0;i<stations.length;i++) {
     const organ=stations[i], element=STATION_ELEMENT[organ];
     const count = totals[element]||0;
     const strength = strengthFromCount(count);
     if(count===1) anyWeak=true;
     reports.push({station:5-i, organ, element, count, strength, sources:collectSources(element,pillars)});
   }
+  
   const contribution = anyWeak ? WEIGHTS.organFlowCompletionWeak : WEIGHTS.organFlowCompletionMax;
   return { reports, contribution };
 }
-function candidateTypesForGate(g){ return g==='hollow'?HOLLOW_TYPES:DENSE_TYPES; }
+
+function candidateTypesForGate(g: string): string[] { 
+  return g==='hollow'?HOLLOW_TYPES:DENSE_TYPES; 
+}
 
 /* Parent–child support (tie-break only; Fire excluded as dominant) */
-const GEN_PARENT = { Wood:'Water', Fire:'Wood', Earth:'Fire', Metal:'Earth', Water:'Metal' };
-const GEN_CHILD  = { Wood:'Fire',  Fire:'Earth', Earth:'Metal', Metal:'Water', Water:'Wood' };
-function dominantElementBySupport(totals){
+const GEN_PARENT: Record<string, string> = { Wood:'Water', Fire:'Wood', Earth:'Fire', Metal:'Earth', Water:'Metal' };
+const GEN_CHILD: Record<string, string>  = { Wood:'Fire',  Fire:'Earth', Earth:'Metal', Metal:'Water', Water:'Wood' };
+
+function dominantElementBySupport(totals: Record<string, number>): string {
   const w={self:1.0,parent:0.9,child:0.8};
   const elems=['Wood','Earth','Metal','Water']; // Fire excluded
   let best=elems[0], bestScore=-Infinity;
-  for(const E of elems){
+  
+  for(const E of elems) {
     const s = (totals[E]||0)*w.self + (totals[GEN_PARENT[E]]||0)*w.parent + (totals[GEN_CHILD[E]]||0)*w.child;
     if(s>bestScore){best=E;bestScore=s;}
   }
   return best;
 }
-function preferredByDominantElement(gate, dom){
+
+function preferredByDominantElement(gate: string, dom: string): string {
   return gate==='dense'
-    ? ({Water:'Renotonia', Earth:'Pancreotonia', Metal:'Pulmonotonia', Wood:'Hepatonia'})[dom]
-    : ({Water:'Vesicotonia', Earth:'Gastrotonia',  Metal:'Colonotonia',  Wood:'Cholecystonia'})[dom];
+    ? ({Water:'Renotonia', Earth:'Pancreotonia', Metal:'Pulmonotonia', Wood:'Hepatonia'} as Record<string, string>)[dom]
+    : ({Water:'Vesicotonia', Earth:'Gastrotonia',  Metal:'Colonotonia',  Wood:'Cholecystonia'} as Record<string, string>)[dom];
 }
 
 /* Choose constitution by fixed-flow evidence; tie-break by dominant element */
-function chooseConstitutionByFlow(gate, totals, pillars){
+function chooseConstitutionByFlow(gate: string, totals: Record<string, number>, pillars: CanonPillars) {
   const candidates = candidateTypesForGate(gate);
-  let best=null, bestReports=null, bestContribution=0;
+  let best: string | null = null, bestReports: any = null, bestContribution=0;
 
-  for(const c of candidates){
+  for(const c of candidates) {
     const {reports, contribution} = flowEvidenceFor(c, totals, pillars);
-    const valid = reports.every(r => r.count>0 || totals[r.element]===0);
+    const valid = reports.every((r: any) => r.count>0 || totals[r.element]===0);
     if(!valid) continue;
-    const sumCounts = reports.reduce((a,r)=>a+r.count,0);
+    const sumCounts = reports.reduce((a: number,r: any)=>a+r.count,0);
     if(contribution>bestContribution ||
-       (contribution===bestContribution && bestReports && sumCounts>bestReports.reduce((a,r)=>a+r.count,0))){
+       (contribution===bestContribution && bestReports && sumCounts>bestReports.reduce((a: number,r: any)=>a+r.count,0))) {
       best=c; bestReports=reports; bestContribution=contribution;
     }
   }
 
-  if(!best){
+  if(!best) {
     // fallback: most stations present
-    for(const c of candidates){
+    for(const c of candidates) {
       const {reports, contribution} = flowEvidenceFor(c, totals, pillars);
-      const present = reports.filter(r=>r.count>0).length;
-      if(!best || present>bestReports.filter(r=>r.count>0).length){
+      const present = reports.filter((r: any)=>r.count>0).length;
+      if(!best || present>bestReports.filter((r: any)=>r.count>0).length) {
         best=c; bestReports=reports; bestContribution=contribution;
       }
     }
   }
 
   // strict tie-break by dominant element support
-  const bestSum = bestReports.reduce((a,r)=>a+r.count,0);
-  const ties=[];
-  for(const c of candidates){
+  const bestSum = bestReports.reduce((a: number,r: any)=>a+r.count,0);
+  const ties: string[] = [];
+  for(const c of candidates) {
     const {reports, contribution} = flowEvidenceFor(c, totals, pillars);
-    const valid = reports.every(r => r.count>0 || totals[r.element]===0);
+    const valid = reports.every((r: any) => r.count>0 || totals[r.element]===0);
     if(!valid) continue;
-    const sum = reports.reduce((a,r)=>a+r.count,0);
+    const sum = reports.reduce((a: number,r: any)=>a+r.count,0);
     if(contribution===bestContribution && sum===bestSum) ties.push(c);
   }
-  if(ties.length>1){
+  if(ties.length>1) {
     const dom = dominantElementBySupport(totals);
     const preferred = preferredByDominantElement(gate, dom);
-    if(ties.includes(preferred)){
+    if(ties.includes(preferred)) {
       const {reports, contribution} = flowEvidenceFor(preferred, totals, pillars);
       return { constitution: preferred, stationReports: reports, organFlowContribution: contribution };
     }
   }
 
-  return { constitution: best, stationReports: bestReports, organFlowContribution: bestContribution };
+  return { constitution: best!, stationReports: bestReports, organFlowContribution: bestContribution };
 }
 
 /* Main analyzer */
-export function analyzeCanon77(pillars){
+export function analyzeCanon77(pillars: CanonPillars): CanonResult {
   // Step 1
   const em = buildElementMatrix(pillars);
   const { matrix, verticalTotals, stemsTotal, polarityTotals } = em;
@@ -237,7 +378,7 @@ export function analyzeCanon77(pillars){
   const respiratoryType = RESPIRATORY[constitution];
 
   // Step 6 — structural score (Rev-A)
-  const genNext = { Wood:'Fire', Fire:'Earth', Earth:'Metal', Metal:'Water', Water:'Wood' };
+  const genNext: Record<string, string> = { Wood:'Fire', Fire:'Earth', Earth:'Metal', Metal:'Water', Water:'Wood' };
   const dominanceConsistent = (verticalTotals[dmInfo.element]||0) >=1 && (verticalTotals[genNext[dmInfo.element]]||0) >=1;
   const score =
     WEIGHTS.fiveElementCompleteness * (Object.values(verticalTotals).every(v=>v>=1)?1:0) +
@@ -296,8 +437,8 @@ export function analyzeCanon77(pillars){
     },
     audit:{
       polarityValidation:true,
-      elementalCoherence:stationReports.every(s=>s.count>0 || verticalTotals[s.element]===0),
-      canonicalFlowIntegrity:arraysEqual(stationReports.map(s=>s.organ), FLOW[constitution])
+      elementalCoherence:stationReports.every((s: any)=>s.count>0 || verticalTotals[s.element]===0),
+      canonicalFlowIntegrity:arraysEqual(stationReports.map((s: any)=>s.organ), FLOW[constitution])
     },
     tables:{
       elementMatrix:matrix,
@@ -313,7 +454,7 @@ export function analyzeCanon77(pillars){
   const mdMatrix = [
     '| Pillar | Wood | Fire | Earth | Metal | Water | Total |',
     '|---|---:|---:|---:|---:|---:|---:|',
-    ...json.tables.elementMatrix.map(r=>`| ${r[0]} | ${r[1]} | ${r[2]} | ${r[3]} | ${r[4]} | ${r[5]} | ${r[6]} |`)
+    ...json.tables.elementMatrix.map((r: any)=>`| ${r[0]} | ${r[1]} | ${r[2]} | ${r[3]} | ${r[4]} | ${r[5]} | ${r[6]} |`)
   ].join('\n');
   const mdTotals = [
     '| Element | Total | Yang | Yin | Strength |',
@@ -328,8 +469,8 @@ export function analyzeCanon77(pillars){
   const mdStations = [
     '| Station | Organ | Element | Count | Strength | Sources |',
     '|---:|---|---|---:|---|---|',
-    ...json.stationStrengths.map(r=>{
-      const src = r.sources.map(s=>`${cap(s.slot)}:${s.stem}${s.visibility==='hidden'?'(hid)':''}`).join(', ');
+    ...json.stationStrengths.map((r: any)=>{
+      const src = r.sources.map((s: any)=>`${cap(s.slot)}:${s.stem}${s.visibility==='hidden'?'(hid)':''}`).join(', ');
       return `| ${r.station} | ${r.organ} | ${r.element} | ${r.count} | ${r.strength} | ${src} |`;
     })
   ].join('\n');

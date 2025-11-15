@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BaziResult } from '../core/bazi';
 import { baziToCanonPillars } from '../lib/baziToCanon';
-import { analyzeCanon77 } from '../lib/ecm';
+import { analyzeCanon77 } from '../lib/canon77_revA';
 
 interface CanonAnalyzerProps {
   baziResult: BaziResult;

@@ -1,13 +1,8 @@
 ﻿import { useState } from 'react';
+import { calculateBazi, BaziResult } from '../core/bazi';
 
 interface BaziFormProps {
-  onCalculate: (data: {
-    name: string;
-    dateOfBirth: string;
-    timeOfBirth: string;
-    placeOfBirth: string;
-  }) => void;
-  isCalculating: boolean;
+  onCalculate: (result: BaziResult) => void;
 }
 
 // Test users data
@@ -44,15 +39,28 @@ const TEST_USERS = [
   }
 ];
 
-export function BaziForm({ onCalculate, isCalculating }: BaziFormProps) {
+export function BaziForm({ onCalculate }: BaziFormProps) {
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [timeOfBirth, setTimeOfBirth] = useState('');
   const [placeOfBirth, setPlaceOfBirth] = useState('');
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onCalculate({ name, dateOfBirth, timeOfBirth, placeOfBirth });
+    setIsCalculating(true);
+    setError(null);
+
+    try {
+      const result = await calculateBazi(name, dateOfBirth, timeOfBirth, placeOfBirth);
+      onCalculate(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error calculating BaZi:', err);
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const loadTestUser = (index: number) => {
@@ -163,6 +171,19 @@ export function BaziForm({ onCalculate, isCalculating }: BaziFormProps) {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div style={{
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: '#ffebee',
+          color: '#c62828',
+          borderRadius: '4px',
+          border: '1px solid #ef5350'
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>

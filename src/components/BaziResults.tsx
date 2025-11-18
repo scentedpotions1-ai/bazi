@@ -1,5 +1,6 @@
 ﻿import { BaziResult, Pillar } from '../core/bazi';
 import { ECMResults } from './ECMResults';
+import { useNavigate } from 'react-router-dom';
 
 interface BaziResultsProps {
   result: BaziResult;
@@ -38,6 +39,7 @@ function PillarDisplay({ pillar, title }: { pillar: Pillar; title: string }) {
 
 export function BaziResults({ result, onReset }: BaziResultsProps) {
   const { personalInfo, chart } = result;
+  const navigate = useNavigate();
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
@@ -61,23 +63,38 @@ export function BaziResults({ result, onReset }: BaziResultsProps) {
 
       <ECMResults baziResult={result} />
 
-      <button
-        onClick={onReset}
-        style={{
-          width: '100%',
-          padding: '15px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          backgroundColor: '#2196F3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginTop: '2rem'
-        }}
-      >
-        Calculate Another Chart
-      </button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '2rem' }}>
+        <button
+          onClick={() => navigate('/profile')}
+          style={{
+            padding: '15px',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            backgroundColor: 'hsl(262 83% 58%)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          View Health Profile
+        </button>
+        <button
+          onClick={onReset}
+          style={{
+            padding: '15px',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Calculate Another Chart
+        </button>
+      </div>
     </div>
   );
 }

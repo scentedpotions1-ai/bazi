@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 interface BaziFormProps {
   onCalculate: (data: {
@@ -23,6 +23,24 @@ const TEST_USERS = [
     dateOfBirth: '1983-03-30',
     timeOfBirth: '12:05',
     placeOfBirth: 'Panama City, Panama'
+  },
+  {
+    name: 'JC Colón',
+    dateOfBirth: '1976-08-18',
+    timeOfBirth: '15:41',
+    placeOfBirth: 'New York, New York USA'
+  },
+  {
+    name: 'John M',
+    dateOfBirth: '1978-09-12',
+    timeOfBirth: '12:00',
+    placeOfBirth: 'Caracas, Venezuela'
+  },
+  {
+    name: 'Maria Torres',
+    dateOfBirth: '1959-11-28',
+    timeOfBirth: '13:30',
+    placeOfBirth: 'Buenos Aires, Argentina'
   }
 ];
 
@@ -94,6 +112,54 @@ export function BaziForm({ onCalculate, isCalculating }: BaziFormProps) {
             }}
           >
             Load Jani
+          </button>
+          <button
+            type="button"
+            onClick={() => loadTestUser(2)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              backgroundColor: '#FF5722',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Load JC Colón
+          </button>
+          <button
+            type="button"
+            onClick={() => loadTestUser(3)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Load John M
+          </button>
+          <button
+            type="button"
+            onClick={() => loadTestUser(4)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              backgroundColor: '#E91E63',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Load Maria Torres
           </button>
         </div>
       </div>

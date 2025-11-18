@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BaZi Calculator Module for TypeScript/React
  * Calculates Four Pillars of Destiny (八字) using Jaguang Sunim's verified method
  * With Luxon for DST + Geocoding + tz-lookup for accurate timezone detection
@@ -437,33 +437,56 @@ export async function calculateBazi(
   console.log('\n' + '='.repeat(60));
   console.log(`🔮 CALCULATING BAZI FOR: ${name}`);
   console.log('='.repeat(60));
+  console.log('📥 INPUT DATA:');
+  console.log(`   Name: ${name}`);
+  console.log(`   Birth Date: ${dateOfBirth}`);
+  console.log(`   Birth Time: ${timeOfBirth}`);
+  console.log(`   Location: ${placeOfBirth}`);
+  console.log('');
 
   // Parse date and time
   const [year, month, day] = dateOfBirth.split('-').map(Number);
   let [hour, minute] = timeOfBirth.split(':').map(Number);
+  console.log('📅 PARSED VALUES:');
+  console.log(`   Year: ${year}, Month: ${month}, Day: ${day}`);
+  console.log(`   Hour: ${hour}, Minute: ${minute}`);
+  console.log('');
 
   // Geocode location to get accurate coordinates and timezone
+  console.log('🌍 GEOCODING LOCATION...');
   const locationData = await geocodeLocation(placeOfBirth);
   if (!locationData) {
+    console.error('❌ Location not found!');
     throw new Error(
       `Could not find location: "${placeOfBirth}". ` +
       `Please check spelling or try adding country (e.g., "Mumbai, India")`
     );
   }
 
+  console.log('✅ LOCATION FOUND:');
+  console.log(`   Display Name: ${locationData.displayName}`);
+  console.log(`   Coordinates: ${locationData.latitude.toFixed(4)}°N, ${locationData.longitude.toFixed(4)}°E`);
+  console.log(`   Timezone: ${locationData.timezone}`);
+  console.log('');
+
   let dstApplied = false;
   let effectiveUtcOffset = 0;
   let standardOffset = 0;
 
   // Auto-detect DST if not manually specified
+  console.log('🕐 DST DETECTION:');
   if (isDST === null) {
     const dstInfo = detectDST(year, month, day, hour, minute, locationData.timezone);
     dstApplied = dstInfo.isDST;
     effectiveUtcOffset = dstInfo.effectiveUtcOffset;
     standardOffset = dstInfo.standardOffset || effectiveUtcOffset;
 
+    console.log(`   DST Active: ${dstApplied}`);
+    console.log(`   Effective UTC Offset: ${effectiveUtcOffset} hours`);
+    console.log(`   Standard Offset: ${standardOffset} hours`);
+
     if (dstInfo.isDST && dstInfo.hoursToSubtract) {
-      console.log(`⚙️ Adjusting time for DST: ${hour}:${String(minute).padStart(2, '0')} → ${hour - dstInfo.hoursToSubtract}:${String(minute).padStart(2, '0')}`);
+      console.log(`   ⚙️ Adjusting time for DST: ${hour}:${String(minute).padStart(2, '0')} → ${hour - dstInfo.hoursToSubtract}:${String(minute).padStart(2, '0')}`);
       hour -= dstInfo.hoursToSubtract;
       if (hour < 0) {
         hour += 24;
@@ -472,18 +495,29 @@ export async function calculateBazi(
   } else if (isDST) {
     // Manual DST adjustment
     dstApplied = true;
+    console.log(`   Manual DST: Yes`);
+    console.log(`   Adjusting -1 hour: ${hour}:${String(minute).padStart(2, '0')} → ${hour - 1}:${String(minute).padStart(2, '0')}`);
     hour -= 1;
     if (hour < 0) {
       hour += 24;
     }
+  } else {
+    console.log(`   Manual DST: No`);
   }
+  console.log('');
 
   // Use standard offset for solar correction
   const utcOffsetForCalculation = standardOffset || effectiveUtcOffset;
+  console.log('☀️ SOLAR TIME CORRECTION:');
+  console.log(`   Longitude: ${locationData.longitude.toFixed(4)}°`);
+  console.log(`   UTC Offset for calculation: ${utcOffsetForCalculation} hours`);
+  
   const solarCorrection = calculateSolarCorrection(locationData.longitude, utcOffsetForCalculation);
-  console.log(`☀️ Solar correction: ${solarCorrection > 0 ? '+' : ''}${solarCorrection.toFixed(1)} minutes`);
+  console.log(`   Solar correction: ${solarCorrection > 0 ? '+' : ''}${solarCorrection.toFixed(1)} minutes`);
 
   // Calculate solar time
+  console.log(`   Clock time: ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
+  
   let solarMinute = minute + solarCorrection;
   let solarHour = hour;
 
@@ -509,14 +543,27 @@ export async function calculateBazi(
     minute: Math.round(solarMinute)
   };
 
-  console.log(`🕐 Solar time: ${String(solarDate.hour).padStart(2, '0')}:${String(solarDate.minute).padStart(2, '0')}`);
+  console.log(`   ✅ Final Solar Time: ${String(Math.floor(solarDate.hour)).padStart(2, '0')}:${String(solarDate.minute).padStart(2, '0')}`);
   console.log('');
 
   // Calculate Four Pillars
+  console.log('🎋 CALCULATING FOUR PILLARS:');
   const yearPillar = getYearPillar(year, month, day);
+  console.log(`   Year Pillar: ${STEMS[yearPillar[0]]}${BRANCHES[yearPillar[1]]} (${STEMS_ENGLISH[yearPillar[0]]}-${BRANCHES_ENGLISH[yearPillar[1]]})`);
+  console.log(`      Stem: ${STEMS_ELEMENT[yearPillar[0]]} | Branch: ${BRANCHES_ELEMENT[yearPillar[1]]} (${BRANCHES_ANIMAL[yearPillar[1]]})`);
+  
   const monthPillar = getMonthPillar(year, month, day, yearPillar[0]);
+  console.log(`   Month Pillar: ${STEMS[monthPillar[0]]}${BRANCHES[monthPillar[1]]} (${STEMS_ENGLISH[monthPillar[0]]}-${BRANCHES_ENGLISH[monthPillar[1]]})`);
+  console.log(`      Stem: ${STEMS_ELEMENT[monthPillar[0]]} | Branch: ${BRANCHES_ELEMENT[monthPillar[1]]} (${BRANCHES_ANIMAL[monthPillar[1]]})`);
+  
   const dayPillar = getDayPillar(solarDate);
+  console.log(`   Day Pillar: ${STEMS[dayPillar[0]]}${BRANCHES[dayPillar[1]]} (${STEMS_ENGLISH[dayPillar[0]]}-${BRANCHES_ENGLISH[dayPillar[1]]}) ⭐ DAY MASTER`);
+  console.log(`      Stem: ${STEMS_ELEMENT[dayPillar[0]]} | Branch: ${BRANCHES_ELEMENT[dayPillar[1]]} (${BRANCHES_ANIMAL[dayPillar[1]]})`);
+  
   const hourPillar = getHourPillar(dayPillar[0], solarDate.hour);
+  console.log(`   Hour Pillar: ${STEMS[hourPillar[0]]}${BRANCHES[hourPillar[1]]} (${STEMS_ENGLISH[hourPillar[0]]}-${BRANCHES_ENGLISH[hourPillar[1]]})`);
+  console.log(`      Stem: ${STEMS_ELEMENT[hourPillar[0]]} | Branch: ${BRANCHES_ELEMENT[hourPillar[1]]} (${BRANCHES_ANIMAL[hourPillar[1]]})`);
+  console.log('');
 
   const chart = {
     year: yearPillar,
@@ -526,7 +573,17 @@ export async function calculateBazi(
   };
 
   const { elements, elementDetails } = countElements(chart);
+  console.log('📊 ELEMENT DISTRIBUTION:');
+  console.log(`   Wood: ${elements.Wood || 0}`);
+  console.log(`   Fire: ${elements.Fire || 0}`);
+  console.log(`   Earth: ${elements.Earth || 0}`);
+  console.log(`   Metal: ${elements.Metal || 0}`);
+  console.log(`   Water: ${elements.Water || 0}`);
+  console.log('');
+  
   const constitution = determineConstitution(elements);
+  console.log('🏥 CONSTITUTION:', constitution);
+  console.log('');
 
   console.log('✅ BaZi calculation complete!');
   console.log('='.repeat(60) + '\n');

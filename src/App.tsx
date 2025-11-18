@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { BaziForm } from './components/BaziForm';
 import { BaziResults } from './components/BaziResults';
 import { calculateBazi, BaziResult } from './core/bazi';
@@ -75,7 +75,10 @@ function App() {
       {!result ? (
         <BaziForm onCalculate={handleCalculate} isCalculating={isCalculating} />
       ) : (
-        <BaziResults result={result} onReset={handleReset} />
+        <>
+            
+          <BaziResults result={result} onReset={handleReset} />
+        </>
       )}
     </div>
   );
